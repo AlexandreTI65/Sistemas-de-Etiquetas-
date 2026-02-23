@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gerador de Etiquetas</title>
+  <style>
+    @keyframes neon-border {
+      0% { box-shadow: 0 0 5px #ff9900, 0 0 10px #ff9900, 0 0 20px #ff9900; }
+      50% { box-shadow: 0 0 10px #ffcc00, 0 0 20px #ffcc00, 0 0 30px #ffcc00; }
+      100% { box-shadow: 0 0 5px #ff9900, 0 0 10px #ff9900, 0 0 20px #ff9900; }
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #111;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      background-color: rgba(0, 0, 0, 0.75);
+      border-radius: 10px;
+      padding: 15px 20px;
+      width: 600px;
+      max-width: 100%;
+      text-align: center;
+      margin-bottom: 30px;
+      border: 2px solid #ff9900;
+      animation: neon-border 2.5s infinite;
+    }
+
+    .container input,
+    .container select {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 8px;
+      border-radius: 4px;
+      border: none;
+      font-size: 14px;
+    }
+
+    .buttons-container {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+    }
+
+    button {
+      background-color: #222;
+      color: #ff9900;
+      padding: 8px 15px;
+      border: 2px solid #ff9900;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 30%;
+    }
+
+    button:hover {
+      background-color: #ff9900;
+      color: #222;
+    }
+
+    #etiquetas {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .etiqueta {
+      border: 4px solid #ff9900;
+      width: 145mm;
+      height: 95mm;
+      padding: 20px;
+      margin: 10px;
+      background-color: #fff;
+      color: #000;
+      position: relative;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      overflow: hidden;
+    }
+
+    .logo-container {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 15px;
+      max-height: 45mm;
+      overflow: hidden;
+    }
+
+    .logo {
+      max-width: 90%;
+      max-height: 100%;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    .info {
+      font-size: 26px;
+      text-align: left;
+      line-height: 1.5;
+      padding: 0 6px;
+      width: 100%;
+    }
+
+    @media print {
+      @page {
+        size: A4 landscape;
+        margin: 10mm;
+      }
+
+      body {
+        background-color: white;
+        color: black;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        margin: 0;
+      }
+
+      .container {
+        display: none;
+      }
+
+      #etiquetas {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .etiqueta {
+        background-color: white;
+        color: black;
+        border: 3px solid black;
+        box-shadow: none;
+        margin: 5mm;
+        page-break-inside: avoid;
+      }
+
+      button {
+        display: none;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .etiqueta {
+        width: 100%;
+        height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="formContainer">
+    <h2>Gerador de Etiquetas</h2>
+
+    <label for="nf">Número da Nota Fiscal:</label>
+    <input type="text" id="nf" placeholder="Digite o número da NF">
+
+    <label for="pedido">Número do Pedido:</label>
+    <input type="text" id="pedido" placeholder="Digite o número do pedido">
+
+    <label for="cliente">Nome do Cliente:</label>
+    <input type="text" id="cliente" placeholder="Digite o nome do cliente">
+
+    <label for="data">Data:</label>
+    <input type="date" id="data">
+
+    <label for="quantidade_volumes">Quantidade de Volumes:</label>
+    <input type="number" id="quantidade_volumes" placeholder="Digite o total de volumes">
+
+    <label for="peso">Peso (kg):</label>
+    <input type="number" id="peso" placeholder="Digite o peso">
+
+    <label for="transportadora">Transportadora:</label>
+    <input type="text" id="transportadora" placeholder="Digite o nome da transportadora">
+
+    <div class="buttons-container">
+      <button onclick="gerarEtiquetas()">Gerar</button>
+      <button onclick="imprimirEtiquetas()">Imprimir</button>
+      <button onclick="limparEtiquetas()">Limpar</button>
+    </div>
+  </div>
+
+  <div id="etiquetas"></div>
+
+  <script>
+    const logoUrl = "https://i.postimg.cc/90pcCKLX/LOGO-GTFIX.png";
+
+    function formatarData(dataString) {
+      const [year, month, day] = dataString.split("-");
+      return `${day}/${month}/${year}`;
+    }
+
+    function gerarEtiquetas() {
+      let pedido = document.getElementById('pedido').value;
+      let cliente = document.getElementById('cliente').value;
+      let nf = document.getElementById('nf').value;
+
+      let dataInput = document.getElementById('data').value;
+      if (!dataInput) {
+        alert("Por favor, preencha uma data válida.");
+        return;
+      }
+      let dataFormatada = formatarData(dataInput);
+
+      let quantidadeVolumes = parseInt(document.getElementById('quantidade_volumes').value);
+      let peso = document.getElementById('peso').value;
+      let transportadora = document.getElementById('transportadora').value;
+
+      if (!pedido || !cliente || !nf || !quantidadeVolumes || !peso || !transportadora) {
+        alert("Por favor, preencha todos os campos corretamente.");
+        return;
+      }
+
+      let container = document.getElementById('etiquetas');
+      container.innerHTML = '';
+
+      for (let j = 1; j <= quantidadeVolumes; j++) {
+        let etiqueta = document.createElement('div');
+        etiqueta.className = 'etiqueta';
+
+        etiqueta.innerHTML = `
+          <div class="logo-container">
+            <img src="${logoUrl}" class="logo">
+          </div>
+          <div class="info">
+            <div><strong>NF:</strong> ${nf}</div>
+            <div><strong>PEDIDO:</strong> ${pedido}</div>
+            <div><strong>CLIENTE:</strong> ${cliente}</div>
+            <div><strong>DATA:</strong> ${dataFormatada}</div>
+            <div><strong>VOLUME:</strong> ${j}/${quantidadeVolumes}</div>
+            <div><strong>PESO:</strong> ${peso} kg</div>
+            <div><strong>TRANSPORTADORA:</strong> ${transportadora}</div>
+          </div>
+        `;
+
+        container.appendChild(etiqueta);
+      }
+    }
+
+    function imprimirEtiquetas() {
+      window.print();
+    }
+
+    function limparEtiquetas() {
+      document.getElementById('etiquetas').innerHTML = '';
+    }
+  </script>
+</body>
+</html>
